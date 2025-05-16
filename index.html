@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Control Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto py-10">
+        <h1 class="text-3xl font-bold mb-6">主持人控制面板</h1>
+        <div id="control-panel" class="bg-white shadow-lg rounded-lg p-6 mb-4">
+            <h2 class="text-xl font-bold mb-2">回合控制</h2>
+            <div class="flex items-center mb-4">
+                <span class="mr-2">回合：</span>
+                <input type="number" id="round-number" class="border border-gray-300 p-2 mr-2" value="0">
+                <button id="round-plus" class="bg-blue-500 text-white px-4 py-2 mr-2">+</button>
+                <button id="round-back" class="bg-red-500 text-white px-4 py-2">-</button>
+            </div>
+            <div class="flex items-center mb-4">
+                <span class="mr-2">隊伍：</span>
+                <select id="team-select" class="border border-gray-300 p-2 mr-2">
+                    <option value="紅">紅</option>
+                    <option value="藍">藍</option>
+                    <option value="黃">黃</option>
+                </select>
+                <span class="mr-2">編號：</span>
+                <input type="number" id="player-number" class="border border-gray-300 p-2 mr-2" min="1" max="4">
+                <span class="mr-2">位置：</span>
+                <input type="number" id="map-position" class="border border-gray-300 p-2">
+                <button id="enter" class="bg-green-500 text-white px-4 py-2 ml-2">Enter</button>
+            </div>
+        </div>
+        <div id="game-map" class="bg-gray-300 h-96 rounded-lg mb-4 relative overflow-hidden">
+            <p>地圖區域</p>
+        </div>
+        <div class="bg-white shadow-lg rounded-lg p-6">
+            <h2 class="text-xl font-bold mb-2">調查與抓捕</h2>
+            <div class="flex items-center mb-4">
+                <span class="mr-2">小偷編號：</span>
+                <select id="thief-select" class="border border-gray-300 p-2 mr-2">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                </select>
+                <span class="mr-2">足跡位置：</span>
+                <input type="number" id="thief-position" class="border border-gray-300 p-2 mr-2">
+                <button id="record-thief" class="bg-yellow-500 text-white px-4 py-2">記錄</button>
+            </div>
+            <div class="flex items-center mb-4">
+                <button id="investigate" class="bg-purple-500 text-white px-4 py-2 mr-2">調查</button>
+                <button id="capture" class="bg-red-600 text-white px-4 py-2">抓捕</button>
+            </div>
+        </div>
+        <div class="bg-white shadow-lg rounded-lg p-6 mt-4">
+            <h2 class="text-xl font-bold mb-2">遊戲記錄</h2>
+            <div id="log" class="h-48 overflow-y-scroll bg-gray-100 p-2"></div>
+        </div>
+    </div>
+
+    <script>
+        const logContainer = document.getElementById('log');
+        const roundNumber = document.getElementById('round-number');
+        const teamSelect = document.getElementById('team-select');
+        const playerNumber = document.getElementById('player-number');
+        const mapPosition = document.getElementById('map-position');
+        const thiefSelect = document.getElementById('thief-select');
+        const thiefPosition = document.getElementById('thief-position');
+        const roundPlus = document.getElementById('round-plus');
+        const roundBack = document.getElementById('round-back');
+        const enterBtn = document.getElementById('enter');
+        const recordThiefBtn = document.getElementById('record-thief');
+        const investigateBtn = document.getElementById('investigate');
+        const captureBtn = document.getElementById('capture');
+        const gameMap = document.getElementById('game-map');
+
+        let roundData = {};
+        let thiefData = { '1': [], '2': [] };
+        let playerElements = [];
+        let thiefElements = [];
+
+        function logMessage(message) {
+            const p = document.createElement('p');
+            p.textContent = message;
+            logContainer.appendChild(p);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function addMarker(position, type, color) {
+            const marker = document.createElement('div');
+            marker.className = `absolute w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold`;
+            marker.style.backgroundColor = color;
+            marker.style.left = `${position * 5}px`;
+            marker.style.top = `${Math.random() * 300}px`;
+            marker.textContent = type;
+            marker.title = `位置: ${position}`;
+            gameMap.appendChild(marker);
+            return marker;
+        }
+
+        roundPlus.addEventListener('click', () => {
+            roundNumber.value = parseInt(roundNumber.value) + 1;
+        });
+
+        roundBack.addEventListener('click', () => {
+            if (parseInt(roundNumber.value) > 0) {
+                roundNumber.value = parseInt(roundNumber.value) - 1;
+            }
+        });
+
+        enterBtn.addEventListener('click', () => {
+            const round = roundNumber.value;
+            const team = teamSelect.value;
+            const player = playerNumber.value;
+            const position = mapPosition.value;
+
+            if (!roundData[round]) {
+                roundData[round] = [];
+            }
+
+            roundData[round].push({ team, player, position });
+            logMessage(`📍 第 ${round} 回合 - 隊伍: ${team}, 編號: ${player}, 位置: ${position}`);
+
+            const marker = addMarker(position, `隊伍 ${team} 編號 ${player}`, team === '紅' ? 'red' : team === '藍' ? 'blue' : 'yellow');
+            playerElements.push(marker);
+        });
+
+        recordThiefBtn.addEventListener('click', () => {
+            const thiefId = thiefSelect.value;
+            const position = thiefPosition.value;
+
+            thiefData[thiefId].push(position);
+            logMessage(`🦹 小偷 ${thiefId} 的足跡位置: ${position}`);
+
+            const marker = addMarker(position, `小偷 ${thiefId}`, 'black');
+            thiefElements.push(marker);
+        });
+
+        investigateBtn.addEventListener('click', () => {
+            const round = roundNumber.value;
+            const players = roundData[round] || [];
+
+            players.forEach(({ team, player, position }) => {
+                if (thiefData['1'].includes(position)) {
+                    logMessage(`⚠️ 隊伍 ${team} 編號 ${player} 找到小偷 1 的足跡在 ${position}`);
+                }
+                if (thiefData['2'].includes(position)) {
+                    logMessage(`⚠️ 隊伍 ${team} 編號 ${player} 找到小偷 2 的足跡在 ${position}`);
+                }
+            });
+        });
+
+        captureBtn.addEventListener('click', () => {
+            const round = roundNumber.value;
+            const players = roundData[round] || [];
+
+            players.forEach(({ team, player, position }) => {
+                const lastThief1 = thiefData['1'][thiefData['1'].length - 1];
+                const lastThief2 = thiefData['2'][thiefData['2'].length - 1];
+
+                if (position === lastThief1) {
+                    logMessage(`🎯 隊伍 ${team} 編號 ${player} 抓捕成功 - 小偷 1 在位置 ${position}`);
+                }
+                if (position === lastThief2) {
+                    logMessage(`🎯 隊伍 ${team} 編號 ${player} 抓捕成功 - 小偷 2 在位置 ${position}`);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
