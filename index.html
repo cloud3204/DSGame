@@ -32,7 +32,7 @@
                 <button id="enter" class="bg-green-500 text-white px-4 py-2 ml-2">Enter</button>
             </div>
         </div>
-        <div id="game-map" class="h-96 rounded-lg mb-4 relative overflow-hidden" style="background-image: url('base_map.png'); background-size: cover;">
+        <div id="game-map" class="h-96 rounded-lg mb-4 relative overflow-hidden" style="background-image: url('./assets/base_map.png'); background-size: cover;">
             <p>地圖區域</p>
         </div>
         <div class="bg-white shadow-lg rounded-lg p-6">
@@ -86,11 +86,17 @@
             logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        function addMarker(position, type, color) {
-            const marker = document.createElement('div');
-            marker.className = `absolute w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold`;
-            marker.style.backgroundColor = color;
-            marker.style.left = `${position * 5}px`;
+        function addMarker(position, type, color) {\
+          const marker = document.createElement('div');\
+          marker.className = `absolute w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold`;\
+          marker.style.backgroundColor = color;\
+          marker.style.left = `${position * 5}px`;\
+          marker.style.top = `${Math.random() * 280 + 10}px`;\
+          marker.textContent = type;\
+          marker.title = `位置: ${position}`;\
+          gameMap.appendChild(marker);\
+          return marker;\
+      }px`;
             marker.style.top = `${Math.random() * 300}px`;
             marker.textContent = type;
             marker.title = `位置: ${position}`;
@@ -169,3 +175,4 @@
     </script>
 </body>
 </html>
+
